@@ -8,11 +8,11 @@ whisperRecognition:
   lang: "de"
 
 ollama:
-  url: "http://localhost:11434/api/generate"
-  model: "llama3"
+  url: "http://dev.pxl:11434/api/generate"
+  model: "llama3:70b"
 
 conversation:
-  context: "Dieses Gespräch ist vollständig in deutscher Sprache."
-  greeting: "Wie kann ich dienen"
-  recognitionWaitMsg: "Ja."
+  context: "Dieses Gespräch ist vollständig in deutscher Sprache. Antworte maximal mit zwei drei Sätzen."
+  greeting: "Ich bin bereit, was kann ich für dich tun?"
+  recognitionWaitMsg: "moment noch"
   llmWaitMsg: "Da muss ich nachdenken"
