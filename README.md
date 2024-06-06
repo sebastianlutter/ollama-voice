@@ -12,6 +12,8 @@ whisper dependencies are setup to run on GPU so Install Cuda before running `pip
 
 ## Running
 
+Install the packages `python3-pyaudio`, `portaudio19-dev` on your distribution
+
 Install [ollama](https://ollama.ai/) and ensure server is started locally first (in WLS under windows) (e.g. `curl https://ollama.ai/install.sh | sh`)
 
 Download a [whisper](https://github.com/openai/whisper) [model](https://github.com/openai/whisper#available-models-and-languages) and place it in the `whisper` subfolder (e.g. https://openaipublic.azureedge.net/main/whisper/models/e5b1a55b89c1367dacf97e3e19bfd829a01529dbfdeefa8caeb59b3f1b81dadb/large-v3.pt)
