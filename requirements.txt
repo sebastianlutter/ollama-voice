@@ -9,3 +9,4 @@ openai-whisper @ git+https://github.com/openai/whisper.git@fcfeaf1b61994c071bba6
 PyAudio==0.2.14
 pyyaml==6.0.1
 pygame==2.5.2
+gtts==2.5.1
