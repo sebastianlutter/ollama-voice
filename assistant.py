@@ -11,6 +11,9 @@ import wave
 from yaml import Loader
 import pygame, sys
 import pygame.locals
+from gtts import gTTS
+import os
+import io
 
 BACK_COLOR = (0,0,0)
 REC_COLOR = (255,0,0)
@@ -32,14 +35,14 @@ INPUT_RATE = 16000
 INPUT_CHUNK = 1024
 OLLAMA_REST_HEADERS = {'Content-Type': 'application/json',}
 INPUT_CONFIG_PATH ="assistant.yaml"
-    
+
 
 class Assistant:
 
 
     def __init__(self):
 
-        self.config = self.initConfig()    
+        self.config = self.initConfig()
 
         programIcon = pygame.image.load('assistant.png')
 
@@ -51,16 +54,16 @@ class Assistant:
         self.font = pygame.font.SysFont(None, FONT_SIZE)
 
         self.audio = pyaudio.PyAudio()
-        
-        self.tts = pyttsx3.init()    
+
+        self.tts = pyttsx3.init()
 
         try:
-            self.audio.open(format=INPUT_FORMAT, 
+            self.audio.open(format=INPUT_FORMAT,
                             channels=INPUT_CHANNELS,
-                            rate=INPUT_RATE, 
+                            rate=INPUT_RATE,
                             input=True,
                             frames_per_buffer=INPUT_CHUNK).close()
-        except :        
+        except :
             self.wait_exit()
 
         self.text_to_speech(self.config.messages.loadingModel)
@@ -82,6 +85,7 @@ class Assistant:
                     self.shutdown()
 
     def shutdown(self):
+        self.text_to_speech("Beende die Applikation jetzt")
         self.audio.terminate()
         pygame.quit()
         sys.exit()
@@ -105,23 +109,23 @@ class Assistant:
         config.conversation.greeting = "Je vous écoute."
         config.conversation.recognitionWaitMsg = "J'interprète votre demande."
         config.conversation.llmWaitMsg = "Laissez moi réfléchir."
-        
+
         stream = open(INPUT_CONFIG_PATH, 'r', encoding="utf-8")
         dic = yaml.load(stream, Loader=Loader)
         #dic depth 2: map values to attributes
         def dic2Object(dic, object):
-            for key in dic: 
+            for key in dic:
                 if hasattr(object, key):
-                    setattr(object, key, dic[key]) 
+                    setattr(object, key, dic[key])
                 else:
                     print("Ignoring unknow setting ", key)
         #dic depth 1: fill depth 2 attributes
-        for key in dic: 
+        for key in dic:
             if hasattr(config, key):
                 dic2Object(dic[key], getattr(config, key))
             else:
                 print("Ignoring unknow setting ", key)
-                
+
 
         return config
 
@@ -143,28 +147,28 @@ class Assistant:
             return (int(x-KWIDTH/2), int(y-KHEIGHT/2),
                     KWIDTH, KHEIGHT)
         for i in range(-int(np.floor(COL_COUNT/2)), int(np.ceil(COL_COUNT/2))):
-            x, y, count = WIDTH/2+(i*hspace), HEIGHT/2, amplitude-2*abs(i)    
-            
+            x, y, count = WIDTH/2+(i*hspace), HEIGHT/2, amplitude-2*abs(i)
+
             mid = int(np.ceil(count/2))
             for i in range(0, mid):
                 color = (RED_CENTER+(FACTOR*(i % mid)), 0, 0)
                 offset = i*(KHEIGHT+vspace)
-                pygame.draw.rect(self.windowSurface, color, 
+                pygame.draw.rect(self.windowSurface, color,
                                 rect_coords(x, y+offset))
                 #mirror:
-                pygame.draw.rect(self.windowSurface, color, 
+                pygame.draw.rect(self.windowSurface, color,
                                 rect_coords(x, y-offset))
         pygame.display.flip()
 
     def display_message(self, text):
         self.windowSurface.fill(BACK_COLOR)
-        
-        label = self.font.render(text 
-                                 if (len(text)<MAX_TEXT_LEN_DISPLAY) 
-                                 else (text[0:MAX_TEXT_LEN_DISPLAY]+"..."), 
-                                 1, 
+
+        label = self.font.render(text
+                                 if (len(text)<MAX_TEXT_LEN_DISPLAY)
+                                 else (text[0:MAX_TEXT_LEN_DISPLAY]+"..."),
+                                 1,
                                  TEXT_COLOR)
-        
+
         size = label.get_rect()[2:4]
         self.windowSurface.blit(label, (WIDTH/2 - size[0]/2, HEIGHT/2 - size[1]/2))
 
@@ -174,14 +178,14 @@ class Assistant:
 
         self.display_rec_start()
 
-        stream = self.audio.open(format=INPUT_FORMAT, 
+        stream = self.audio.open(format=INPUT_FORMAT,
                                  channels=INPUT_CHANNELS,
-                                 rate=INPUT_RATE, 
+                                 rate=INPUT_RATE,
                                  input=True,
                                  frames_per_buffer=INPUT_CHUNK)
         frames = []
 
-        while True:            
+        while True:
             pygame.event.pump() # process event queue
             pressed = pygame.key.get_pressed()
             if pressed[key]:
@@ -196,16 +200,16 @@ class Assistant:
         return np.frombuffer(b''.join(frames), np.int16).astype(np.float32) * (1 / 32768.0)
 
     def speech_to_text(self, waveform):
-        self.text_to_speech(self.config.conversation.recognitionWaitMsg)    
+        self.text_to_speech(self.config.conversation.recognitionWaitMsg)
 
-        transcript = self.model.transcribe(waveform, 
-                                           language = self.config.whisperRecognition.lang, 
+        transcript = self.model.transcribe(waveform,
+                                           language = self.config.whisperRecognition.lang,
                                            fp16=torch.cuda.is_available())
         text = transcript["text"]
-        self.text_to_speech(text)
+        self.display_message(text)
         return text
-    
-    
+
+
     def ask_ollama(self, prompt, responseCallback):
         #self.conversation_history.append(prompt)
         #full_prompt = "\n".join(self.conversation_history)
@@ -215,14 +219,14 @@ class Assistant:
                                         "stream":True,
                                         "context":self.context,
                                         "prompt":full_prompt}
-        response = requests.post(self.config.ollama.url, 
-                                 json=jsonParam, 
+        response = requests.post(self.config.ollama.url,
+                                 json=jsonParam,
                                  headers=OLLAMA_REST_HEADERS,
                                  stream=True)
         response.raise_for_status()
 
         #print(jsonParam)
-        self.text_to_speech(self.config.conversation.llmWaitMsg)    
+        self.text_to_speech(self.config.conversation.llmWaitMsg)
 
         tokens = []
         for line in response.iter_lines():
@@ -244,41 +248,29 @@ class Assistant:
                 self.context = body['context']
 
     def text_to_speech(self, text):
-        print(text)
-        tempPath = 'temp.wav'
-        #self.tts.say(text)
-        self.tts.save_to_file(text , tempPath)
-        self.tts.runAndWait()
-        wf = wave.open(tempPath, 'rb')
-        # open stream based on the wave object which has been input.
-        stream = self.audio.open(format =
-                        self.audio.get_format_from_width(wf.getsampwidth()),
-                        channels = wf.getnchannels(),
-                        rate = wf.getframerate(),
-                        output = True)
-        chunkSize = 1024
-        chunk = wf.readframes(chunkSize)
-        while chunk:
-            stream.write(chunk)
-            tmp = np.array(np.frombuffer(chunk, np.int16), np.float32) * (1 / 32768.0)
-            energy_of_chunk = np.sqrt(np.mean(tmp**2))
-            self.display_sound_energy(energy_of_chunk)
-            chunk = wf.readframes(chunkSize)
-
-        wf.close()    
-        self.display_message(text)
+        # Convert text to speech
+        tts = gTTS(text=text, lang=self.config.whisperRecognition.lang, slow=False)
+        # Save to a bytes buffer
+        mp3_fp = io.BytesIO()
+        tts.write_to_fp(mp3_fp)
+        mp3_fp.seek(0)
+        # Initialize pygame mixer
+        pygame.mixer.init()
+        # Load the audio from the buffer
+        pygame.mixer.music.load(mp3_fp)
+        # Play the audio
+        pygame.mixer.music.play()
+        # Wait for the playback to finish
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
 
 def main():
-
-    if sys.version_info[0:3] != (3, 9, 13):
-        print('Warning, it was only tested with python 3.9.13, it may fail')
-        
     pygame.init()
 
     ass = Assistant()
 
     push_to_talk_key = pygame.K_SPACE;
-   
+
     while True:
         ass.clock.tick(60)
         for event in pygame.event.get():
@@ -286,9 +278,9 @@ def main():
                 speech = ass.waveform_from_mic(push_to_talk_key)
 
                 transcription = ass.speech_to_text(waveform=speech)
-                
+
                 ass.ask_ollama(transcription, ass.text_to_speech)
-                
+
                 ass.display_message(ass.config.messages.pressSpace)
 
             if event.type == pygame.locals.QUIT:
@@ -297,4 +289,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
