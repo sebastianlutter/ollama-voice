@@ -12,7 +12,7 @@ whisper dependencies are setup to run on GPU so Install Cuda before running `pip
 
 ## Running
 
-Install the packages `python3-pyaudio`, `portaudio19-dev` on your distribution
+Install the packages `python3-pyaudio`, `portaudio19-dev` and `espeak` on your distribution
 
 Install [ollama](https://ollama.ai/) and ensure server is started locally first (in WLS under windows) (e.g. `curl https://ollama.ai/install.sh | sh`)
 
@@ -28,3 +28,4 @@ Leave `space` key pressed to talk, the AI will interpret the query when you rele
 
 - Rearrange code base
 - Multi threading to overlap tts and speed recognition (ollama is already running remotely in parallel)
+wget https://openaipublic.azureedge.net/main/whisper/models/345ae4da62f9b3d59415adc60127b97c714f32e89e936602e85993674d08dcb1/medium.pt
