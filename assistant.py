@@ -20,11 +20,11 @@ REC_COLOR = (255,0,0)
 TEXT_COLOR = (255,255,255)
 REC_SIZE = 80
 FONT_SIZE = 24
-WIDTH = 320
+WIDTH = 800
 HEIGHT = 240
 KWIDTH = 20
 KHEIGHT = 6
-MAX_TEXT_LEN_DISPLAY = 32
+MAX_TEXT_LEN_DISPLAY = 400
 
 
 
@@ -263,6 +263,7 @@ class Assistant:
         # Wait for the playback to finish
         while pygame.mixer.music.get_busy():
             pygame.time.Clock().tick(10)
+
 
 def main():
     pygame.init()

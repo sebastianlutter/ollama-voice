@@ -4,7 +4,7 @@ messages:
   noAudioInput: "Fehler: Kein Audioeingang"
 
 whisperRecognition:
-  modelPath: "whisper/large-v3.pt"
+  modelPath: "small"
   lang: "de"
 
 ollama:
@@ -12,7 +12,7 @@ ollama:
   model: "llama3:70b"
 
 conversation:
-  context: "Dieses Gespräch ist vollständig in deutscher Sprache. Antworte maximal mit zwei drei Sätzen."
+  context: "Dieses Gespräch ist vollständig in deutscher Sprache, niemals englisch. Antworte kurz und bündig."
   greeting: "Ich bin bereit, was kann ich für dich tun?"
-  recognitionWaitMsg: "moment noch"
-  llmWaitMsg: "Da muss ich nachdenken"
+  recognitionWaitMsg: "ok"
+  llmWaitMsg: ""
