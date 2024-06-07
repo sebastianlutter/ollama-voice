@@ -8,8 +8,8 @@ whisperRecognition:
   lang: "de"
 
 ollama:
-  url: "http://dev.pxl:11434/api/generate"
-  model: "llama3:70b"
+  url: "http://127.0.0.1:11434/api/generate"
+  model: "llama3"
 
 conversation:
   context: "Dieses Gespräch ist vollständig in deutscher Sprache, niemals englisch. Antworte kurz und bündig."
