@@ -14,6 +14,7 @@ import pygame.locals
 from gtts import gTTS
 import os
 import io
+import time
 
 BACK_COLOR = (0,0,0)
 REC_COLOR = (255,0,0)
@@ -248,7 +249,11 @@ class Assistant:
                 self.context = body['context']
 
     def text_to_speech(self, text):
+        if len(text) < 1:
+            print("text_to_speech: No text, ignore")
+            return
         # Convert text to speech
+        print(f"Answer: {text}")
         tts = gTTS(text=text, lang=self.config.whisperRecognition.lang, slow=False)
         # Save to a bytes buffer
         mp3_fp = io.BytesIO()
@@ -279,9 +284,11 @@ def main():
                 speech = ass.waveform_from_mic(push_to_talk_key)
 
                 transcription = ass.speech_to_text(waveform=speech)
-
+                start_time = time.time()
                 ass.ask_ollama(transcription, ass.text_to_speech)
-
+                end_time = time.time()
+                duration = end_time - start_time
+                print(f"The function took {int(duration)} seconds and {(duration % 1) * 1000:.0f} milliseconds to complete.")
                 ass.display_message(ass.config.messages.pressSpace)
 
             if event.type == pygame.locals.QUIT:
